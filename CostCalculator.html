@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PC / Home Server Electrical Cost Calculator</title>
+
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="7d816bfb-68b8-44b9-8cbb-7a1776f709ef"></script>
+  
+</head>
+
+<header>
+  <h1>PC / Home Server Electrical Cost Calculator</h1>
+
+  <p>
+    The <b>ONLY</b> calculator that considers your PC is inside a room,
+    and not outside in the woods.
+  </p>
+
+  <p>
+    ▶ <b>Watch the full video for the full explanation:</b>
+    <a href="https://www.youtube.com/@HomeServerChannel" target="_blank">
+      HomeServerChannel on YouTube
+    </a><br>
+    📺 <b>Visit my YouTube channel:</b>
+    <a href="https://www.youtube.com/@HomeServerChannel" target="_blank">
+      HomeServerChannel
+    </a>
+  </p>
+
+
+</header>
+
+<body>
+
+<style>
+    fieldset { margin-top: 10px; max-width: 550px; }
+    input[type=number] { width: 70px; }
+    legend { font-size: 20px; }
+</style>
+
+
+
+
+<fieldset>
+  <legend>PC / Server</legend>
+  <table>
+          <tr><td>Power draw (Watts):</td><td><input type="number" id="watts" value="50"></td></tr>
+      <tr><td>Hours per day it's on:</td><td><input type="number" id="hoursPerDay" value="24" min="0" max="24"></td></tr>
+      <tr><td>Days per year it's on:</td><td><input type="number" id="daysPerYear" value="365" min="0" max="365"></td></tr>
+      <tr><td>Electricity price ($/kWh):</td><td><input type="number" id="ElecPrice" value="0.30" step="0.01"></td></tr>
+  </table>
+</fieldset>
+
+
+<fieldset>
+    <legend>How is your room heated?</legend>
+    <input type="radio" name="heat" id="heatElectric" value="electric" checked> <label for="heatElectric">Electric heater</label><br>
+    <input type="radio" name="heat" id="heatPump" value="heatpump"> <label for="heatPump">Heat pump</label><br>
+    <input type="radio" name="heat" id="heatGas" value="gas"> <label for="heatGas">Gas furnace</label>
+      <table><tr><td>Gas price (Only needed if heated by gas) ($/kWh):</td><td><input type="number" id="gasPrice" value="0.15" min="0.01" step="0.01"></td></tr></table>
+</fieldset>
+
+  <fieldset>
+    <legend>Months per year</legend>
+    <table>
+      <tr><td>&#10052;&#65039; Winter (heat on):</td><td><input type="number" id="mWinter" value="4" min="0" max="12"></td></tr>
+      <tr><td>&#9728;&#65039; Summer (no heat / no AC):</td><td><input type="number" id="mSummer" value="4" min="0" max="12"></td></tr>
+      <tr><td>&#9728;&#65039;&#10052;&#65039; Summer + AC:</td><td><input type="number" id="mSummerAC" value="4" min="0" max="12"></td></tr>
+    </table>
+<div id="error" style="color: red; font-size: 24px; font-weight: bold;"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Yearly cost</legend>
+    <table>
+      <tr><td>&#10052;&#65039; Winter subtotal:</td><td id="winterSub">$0.00</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        <td><div id="gasWarning" style="display: none; width: 200px;">
+  ⚠️ A negative cost means your PC is saving you money on heating because electricity is cheaper than gas. This is normal.</div></td></tr>
+      <tr><td>&#9728;&#65039; Summer subtotal:</td><td id="summerSub">$0.00</td></tr>
+      <tr><td>&#9728;&#65039;&#10052;&#65039; Summer + AC subtotal:</td><td id="summerACSub">$0.00</td></tr>
+      <tr><td></td></tr>
+      <tr><td></td></tr>
+      <tr id="totalRow"><td style="font-weight: bold;">TOTAL:</td><td id="totalYearly" style="font-weight: bold;">$0.00</td></tr>
+    </table>
+  </fieldset>
+
+  <table>
+<tr>
+  <td>
+    <a href="https://buymeacoffee.com/homeserverchannel" target="_blank" style="text-decoration:none;">
+      <span class="coffee-box">&#9749; <b>Buy me a coffee</b></span>
+    </a>
+    &nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    HomeServerChannel © 2026
+  </td>
+</tr>
+</table>
+
+<script>
+
+document.getElementById("watts").addEventListener("input", calculate);
+document.getElementById("hoursPerDay").addEventListener("input", calculate);
+document.getElementById("daysPerYear").addEventListener("input", calculate);
+document.getElementById("ElecPrice").addEventListener("input", calculate);
+document.getElementById("gasPrice").addEventListener("input", calculate);
+document.getElementById("heatElectric").addEventListener("input", calculate);
+document.getElementById("heatPump").addEventListener("input", calculate);
+document.getElementById("heatGas").addEventListener("input", calculate);
+document.getElementById("mWinter").addEventListener("input", calculate);
+document.getElementById("mSummer").addEventListener("input", calculate);
+document.getElementById("mSummerAC").addEventListener("input", calculate);
+
+
+
+
+function calculate() {
+  
+const watts = Number(document.getElementById("watts").value);
+const hoursPerDay = Number(document.getElementById("hoursPerDay").value);
+const daysPerYear = Number(document.getElementById("daysPerYear").value);
+const ElecPrice = Number(document.getElementById("ElecPrice").value);
+const gasPrice = Number(document.getElementById("gasPrice").value);
+const heatElectric = document.getElementById("heatElectric").value;
+const heatPump = document.getElementById("heatPump").value;
+const heatGas = document.getElementById("heatGas").value;
+const mWinter = Number(document.getElementById("mWinter").value);
+const mSummer = Number(document.getElementById("mSummer").value);
+const mSummerAC = Number(document.getElementById("mSummerAC").value);
+
+  
+      //Erreur de total de months
+    let MonthsTotal_watchdog = mWinter + mSummer + mSummerAC
+
+
+      if (MonthsTotal_watchdog !== 12) {
+    document.getElementById("error").textContent = "ERROR: Total must equal 12";
+    } else {
+    document.getElementById("error").textContent = "";
+    }
+
+      
+  // Calcul du Raw Energy monthly cost
+    let remc = (watts * hoursPerDay * daysPerYear * ElecPrice) / 1000 / 12;
+
+const winterFactorElectric = 0;
+const winterFactorHeatPump = 0.63;
+const summerFactor = 1;
+const summerACFactor = 0.25;
+
+//Winter cost
+
+let Calcul_WinterSubTotal
+
+if (document.getElementById("heatElectric").checked) {
+
+    // Electric formula
+    Calcul_WinterSubTotal = mWinter * remc * winterFactorElectric;
+
+} else if (document.getElementById("heatPump").checked) {
+
+    // Heat pump formula
+    Calcul_WinterSubTotal = mWinter * remc * winterFactorHeatPump;
+
+} else if (document.getElementById("heatGas").checked) {
+
+    // Gas formula
+Calcul_WinterSubTotal = mWinter * remc * (1 - (gasPrice === 0 ? 0.0001 : gasPrice) / ElecPrice);
+
+}
+
+document.getElementById("winterSub").textContent =
+    '$' + Calcul_WinterSubTotal.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+
+//Summer cost
+    let Calcul_SummerSubTotal = mSummer * remc * summerFactor;
+document.getElementById("summerSub").textContent =
+    '$' + Calcul_SummerSubTotal.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+//SummerAC cost
+    let Calcul_SummerACSubTotal = (mSummerAC * remc * summerFactor) + (mSummerAC * remc * summerACFactor);
+document.getElementById("summerACSub").textContent =
+    '$' + Calcul_SummerACSubTotal.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+
+//Big total
+    let Cost_total_all3 = Calcul_WinterSubTotal + Calcul_SummerSubTotal + Calcul_SummerACSubTotal;
+document.getElementById("totalYearly").textContent =
+    '$' + Cost_total_all3.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+
+    //Le coût du gaz négatif
+document.getElementById("gasWarning").style.display =
+    Calcul_WinterSubTotal < 0 ? "block" : "none";
+
+
+
+}
+
+calculate();
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
